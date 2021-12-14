@@ -1,15 +1,12 @@
-fn main() {
-    let config = AppConfig {
-        source: String::from("source"),
-        destination: String::from("destination"),
-    };
-    println!(
-        "source {}, destination {}",
-        config.source, config.destination
-    );
-}
+use log::error;
+use spear::Settings;
+use std::process;
 
-struct AppConfig {
-    source: String,
-    destination: String,
+fn main() {
+    env_logger::init();
+
+    let _settings = Settings::default().unwrap_or_else(|err| {
+        error!("{}", err);
+        process::exit(1);
+    });
 }

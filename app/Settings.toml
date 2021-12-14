@@ -1,0 +1,4 @@
+[spear_default]
+file_location = "somewhere"
+greetings = "hello"
+fish_count = 10
