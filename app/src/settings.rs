@@ -2,15 +2,21 @@ use config::{Config, ConfigError, File};
 use log::debug;
 
 #[derive(Debug, Deserialize)]
-pub struct SpearDefault {
-    pub file_location: String,
-    pub greetings: String,
-    pub fish_count: u32,
+pub struct Directory {
+    pub source_directory: String,
+    pub s3_bucket: String,
+    pub inventory_file: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Common {
+    pub my_secrets: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    pub spear_default: SpearDefault,
+    pub directory: Vec<Directory>,
+    pub common: Common
 }
 
 impl Settings {

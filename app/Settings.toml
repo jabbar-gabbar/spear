@@ -1,4 +1,12 @@
-[spear_default]
-file_location = "somewhere"
-greetings = "hello"
-fish_count = 10
+[common]
+my_secrets = ""
+
+[[directory]]
+source_directory  = ""
+s3_bucket = ""
+inventory_file = ""
+
+[[directory]]
+source_directory  = ""
+s3_bucket = ""
+inventory_file = ""
