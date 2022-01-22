@@ -1,3 +1,4 @@
+use serde_derive::Deserialize;
 use config::{Config, ConfigError, File};
 use log::debug;
 
