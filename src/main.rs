@@ -1,8 +1,8 @@
-use spear::settings::Settings;
-use crate::inventory::InventoryFile;
-use spear::inventory;
-use std::process;
+use crate::inventory::InventoryPath;
 use log::error;
+use spear::inventory;
+use spear::settings::Settings;
+use std::process;
 
 fn main() {
     env_logger::init();
@@ -12,14 +12,16 @@ fn main() {
         process::exit(1);
     });
 
-    match inventory::append(String::from("../inventory")){
-        Ok(_)=>{},
-        Err(e)=> error!("{}", e)
-    }
-
-    let inventory_file = InventoryFile {
-        inventory_path: String::from("../inventory"),
+    let inventory_file = InventoryPath {
+        path: String::from("inventory"),
     };
+
+    let mut new_inventory = String::from("new line");
+
+    match inventory::append(&inventory_file, &mut new_inventory) {
+        Ok(_) => {}
+        Err(e) => error!("{}", e),
+    }
 
     match inventory::list(&inventory_file) {
         Ok(lines) => {

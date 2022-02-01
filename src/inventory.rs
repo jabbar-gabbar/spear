@@ -1,81 +1,83 @@
 use std::fs;
 use std::fs::File;
+use std::io::Error;
 use std::io::Write;
-use std::io::{Error, ErrorKind};
-use std::path::Path;
 
-pub struct ReadToStringResult {
-    file_content: String,
+pub struct InventoryPath {
+    pub path: String,
 }
 
 pub trait ReadToString {
-    fn read_to_string(&self) -> Result<ReadToStringResult, Error>;
+    fn read_to_string(&self) -> Result<String, Error>;
 }
 
-pub struct InventoryFile {
-    pub inventory_path: String,
-}
-
-impl ReadToString for InventoryFile {
-    fn read_to_string(&self) -> Result<ReadToStringResult, Error> {
-        Ok(ReadToStringResult {
-            file_content: fs::read_to_string(&self.inventory_path)?,
-        })
+impl ReadToString for InventoryPath {
+    fn read_to_string(&self) -> Result<String, Error> {
+        Ok(fs::read_to_string(&self.path)?)
     }
 }
 
 pub fn list(read_to_string_impl: &dyn ReadToString) -> Result<Vec<String>, Error> {
-    let content: ReadToStringResult = read_to_string_impl.read_to_string()?;
+    let content = read_to_string_impl.read_to_string()?;
 
     let mut lines: Vec<String> = Vec::new();
 
-    for line in content.file_content.lines() {
+    for line in content.lines() {
         lines.push(String::from(line));
     }
 
     Ok(lines)
 }
 
-pub fn append(inventory_path: String) -> Result<(), Error> {
-    if !Path::new(&inventory_path).exists() {
-        let parent_dir = match Path::new(&inventory_path).parent() {
-            Some(p) => p,
-            None => {
-                return Err(Error::new(
-                    ErrorKind::InvalidInput,
-                    "Inventory path terminates at root",
-                ));
-            }
-        };
-
-        match fs::create_dir_all(parent_dir) {
-            Ok(_) => {}
-            Err(e) => return Err(e),
-        }
-    }
-
-    let mut option = fs::OpenOptions::new();
-    let mut file: File = option.append(true).create(true).open(inventory_path)?;
-    Ok(file.write_all("text\n".as_bytes())?)
+pub struct FileResult {
+    file: File,
 }
 
-struct TestInventoryFile {
-    content: String,
+pub trait Append {
+    fn open(&self) -> Result<FileResult, Error>;
+    fn write_all(&self, opened_file: FileResult, append_content: &String) -> Result<(), Error>;
 }
-impl ReadToString for TestInventoryFile {
-    fn read_to_string(&self) -> Result<ReadToStringResult, Error> {
-        Ok(ReadToStringResult {
-            file_content: String::from(&self.content),
-        })
+
+impl Append for InventoryPath {
+    fn open(&self) -> Result<FileResult, Error> {
+        let mut option = fs::OpenOptions::new();
+
+        let file: File = option.append(true).create(true).open(&self.path)?;
+
+        Ok(FileResult { file: file })
     }
+
+    fn write_all(&self, mut opened_file: FileResult, append_content: &String) -> Result<(), Error> {
+        Ok(opened_file.file.write_all(append_content.as_bytes())?)
+    }
+}
+
+pub fn append(append_impl: &dyn Append, new_content: &mut String) -> Result<(), Error> {
+    let file = append_impl.open()?;
+
+    new_content.push_str("\n");
+
+    Ok(append_impl.write_all(file, new_content)?)
 }
 
 #[cfg(inventory_tests)]
-#[test]
-fn list_returns_list() {
-    let expected: Vec<String> = vec!["test1".into(), "test2".into()];
-    let test_inventory_file = TestInventoryFile {
-        content: expected.join("\r\n"),
-    };
-    assert_eq!(list(&test_inventory_file).unwrap(), expected);
+mod tests {
+
+    struct TestInventoryFile {
+        content: String,
+    }
+    impl ReadToString for TestInventoryFile {
+        fn read_to_string(&self) -> Result<String, Error> {
+            Ok(String::from(&self.content))
+        }
+    }
+
+    #[test]
+    fn list_inventory() {
+        let expected: Vec<String> = vec!["test1".into(), "test2".into()];
+        let test_inventory_file = TestInventoryFile {
+            content: expected.join("\r\n"),
+        };
+        assert_eq!(list(&test_inventory_file).unwrap(), expected);
+    }
 }

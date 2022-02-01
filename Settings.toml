@@ -1,0 +1,12 @@
+[common]
+my_secrets = ""
+
+[[directory]]
+source_directory  = ""
+s3_bucket = ""
+inventory_file = ""
+
+[[directory]]
+source_directory  = ""
+s3_bucket = ""
+inventory_file = ""
