@@ -29,64 +29,63 @@ pub fn list(read_to_string_impl: &dyn ReadToString) -> Result<Vec<String>, Error
     Ok(lines)
 }
 
-pub struct FileResult {
-    file: File,
-}
-
 pub trait Append {
-    fn open(&self) -> Result<FileResult, Error>;
-    fn write_all(&self, opened_file: FileResult, append_content: &String) -> Result<(), Error>;
+    fn append(&self, new_content: &String) -> Result<(), Error>;
 }
 
 impl Append for InventoryPath {
-    fn open(&self) -> Result<FileResult, Error> {
+    fn append(&self, new_content: &String) -> Result<(), Error> {
         let mut option = fs::OpenOptions::new();
+        let mut file: File = option.create(true).append(true).open(&self.path)?;
 
-        let file: File = option.append(true).create(true).open(&self.path)?;
-
-        Ok(FileResult { file: file })
-    }
-
-    fn write_all(&self, mut fr: FileResult, append_content: &String) -> Result<(), Error> {
-        Ok(fr.file.write_all(append_content.as_bytes())?)
+        Ok(file.write_all(new_content.as_bytes())?)
     }
 }
 
 pub fn append(append_impl: &dyn Append, new_content: &mut String) -> Result<(), Error> {
-    let fr = append_impl.open()?;
-
     new_content.push_str("\n");
-
-    Ok(append_impl.write_all(fr, new_content)?)
+    Ok(append_impl.append(new_content)?)
 }
 
-#[cfg(inventory_tests)]
+#[cfg(test)]
 mod tests {
 
+    use super::*;
+
     struct TestInventoryPath {
-        path: String,
+        content: String,
     }
     impl ReadToString for TestInventoryPath {
         fn read_to_string(&self) -> Result<String, Error> {
-            Ok(String::from(&self.path))
+            Ok(String::from(&self.content))
         }
     }
 
     #[test]
     fn list_inventory() {
-        let expected: Vec<String> = vec!["test1".into(), "test2".into()];
-        let test_inventory_file = TestInventoryFile {
+        let expected: Vec<String> = vec!["line1".into(), "line2".into()];
+        let test_inventory_file = TestInventoryPath {
             content: expected.join("\r\n"),
         };
         assert_eq!(list(&test_inventory_file).unwrap(), expected);
     }
 
-    impl Append for TestInventoryPath{
-        fn append(append_impl: &dyn Append, new_content: &mut String);
+    impl Append for TestInventoryPath {
+        fn append(&self, _: &String) -> Result<(), Error> {
+            Ok(())
+        }
     }
 
     #[test]
     fn append_inserts_new_line() {
-        unimplemented!();
+        let test_inventory_path = TestInventoryPath { content: "".into() };
+
+        let mut new_content: String = "".into();
+        let mut expected: String = new_content.clone();
+        expected.push_str("\n");
+
+        append(&test_inventory_path, &mut new_content).unwrap();
+
+        assert_eq!(new_content, expected);
     }
 }
