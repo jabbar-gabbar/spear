@@ -47,28 +47,28 @@ impl Append for InventoryPath {
         Ok(FileResult { file: file })
     }
 
-    fn write_all(&self, mut opened_file: FileResult, append_content: &String) -> Result<(), Error> {
-        Ok(opened_file.file.write_all(append_content.as_bytes())?)
+    fn write_all(&self, mut fr: FileResult, append_content: &String) -> Result<(), Error> {
+        Ok(fr.file.write_all(append_content.as_bytes())?)
     }
 }
 
 pub fn append(append_impl: &dyn Append, new_content: &mut String) -> Result<(), Error> {
-    let file = append_impl.open()?;
+    let fr = append_impl.open()?;
 
     new_content.push_str("\n");
 
-    Ok(append_impl.write_all(file, new_content)?)
+    Ok(append_impl.write_all(fr, new_content)?)
 }
 
 #[cfg(inventory_tests)]
 mod tests {
 
-    struct TestInventoryFile {
-        content: String,
+    struct TestInventoryPath {
+        path: String,
     }
-    impl ReadToString for TestInventoryFile {
+    impl ReadToString for TestInventoryPath {
         fn read_to_string(&self) -> Result<String, Error> {
-            Ok(String::from(&self.content))
+            Ok(String::from(&self.path))
         }
     }
 
@@ -79,5 +79,14 @@ mod tests {
             content: expected.join("\r\n"),
         };
         assert_eq!(list(&test_inventory_file).unwrap(), expected);
+    }
+
+    impl Append for TestInventoryPath{
+        fn append(append_impl: &dyn Append, new_content: &mut String);
+    }
+
+    #[test]
+    fn append_inserts_new_line() {
+        unimplemented!();
     }
 }
