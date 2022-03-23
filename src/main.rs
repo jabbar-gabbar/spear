@@ -1,11 +1,17 @@
 use crate::inventory::InventoryPath;
 use log::error;
-use spear::inventory;
 use spear::settings::Settings;
+use spear::{inventory, source};
 use std::process;
 
 fn main() {
     env_logger::init();
+
+    if let Ok(source_paths) = source::list(".") {
+        for source_path in source_paths {
+            println!("source file: {}", source_path);
+        }
+    }
 
     let _settings = Settings::default().unwrap_or_else(|err| {
         error!("{}", err);

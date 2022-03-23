@@ -3,13 +3,16 @@ fn run(){
 
     // run(settings: Settings) -> Result<bool, Err>;
 
-    //for a dir -> inv_path, source_path, s3_bucket_name
-    //  get an inventory_list from inv_path
-    //  get source_list from source_path
-    //  calculate upload_list from both (unit test)
-    //  for f in upload_files
-    //      contact s3 and upload it 
-    //          if success, add to the list of completed list (unit test)
-    //          else log error in console (unit test)
-    //  append the inventory file with the completed inv list 
+    // Settings::default() to read settings file
+    // for each backup [inv_path, source_path, s3_bucket_name] in settings
+    //  get an inventory.list(read_to_string_impl) using inv_path (done)
+    //  source.list(source_path) get source files: Vec<string>
+    //  calculate filter_upload.filter() from both (unit test)
+    //  for f in uploads
+    //      s3.upload(abs_f_path: string)
+    //          create key name prefix + file name. Prefix = file path.substring(source_path - file_path.substring(filepath.lastindex('/'))) //main/dir_1/dir_2/hi.jpg
+    //          aws_sdk.s3_client.upload(abs_f_path, key_name) ->Result<boolean,Error>
+    //      if success, add to the list of completed list (unit test)
+    //      else log error in console
+    //  inventory.append(append_impl, new_content) the inventory file with the completed inv list 
 }
