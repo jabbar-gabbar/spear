@@ -7,7 +7,10 @@ use std::process;
 fn main() {
     env_logger::init();
 
-    if let Ok(source_paths) = source::list(".") {
+    let source_dir = source::SourceDir {
+        dir_path: ".".into(),
+    };
+    if let Ok(source_paths) = source::list(&source_dir) {
         for source_path in source_paths {
             println!("source file: {}", source_path);
         }
