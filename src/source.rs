@@ -1,26 +1,26 @@
 use std::{io::Error, path::Path};
 use walkdir::WalkDir;
 
-pub fn list(dir: &dyn Dir) -> Result<Vec<String>, Error> {
-    let mut source_file_list: Vec<String> = vec![];
+pub fn list(dir_reader: &dyn ReadDir) -> Result<Vec<String>, Error> {
+    let mut source_files: Vec<String> = vec![];
 
-    for path in dir.iter()? {
-        if dir.is_file(&path) {
-            source_file_list.push(path);
+    for path in dir_reader.iter()? {
+        if dir_reader.is_file(&path) {
+            source_files.push(path);
         }
     }
-    Ok(source_file_list)
+    Ok(source_files)
 }
 
 pub struct SourceDir {
     pub dir_path: String,
 }
-pub trait Dir {
+pub trait ReadDir {
     fn iter(&self) -> Result<Vec<String>, Error>;
     fn is_file(&self, path: &str) -> bool;
 }
 
-impl Dir for SourceDir {
+impl ReadDir for SourceDir {
     fn iter(&self) -> Result<Vec<String>, Error> {
         let mut list: Vec<String> = Vec::new();
         for entry in WalkDir::new(&self.dir_path) {
