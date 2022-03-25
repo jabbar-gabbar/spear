@@ -1,10 +1,13 @@
 use std::{io::Error, path::Path};
 use walkdir::WalkDir;
 
+/// Returns list of absolute file paths in the source directory recursively.
+/// 
+/// This function will include file paths recursively (in current and sub-directories) and exclude any directory paths in the result `Vec<String>`.
 pub fn list(dir_reader: &dyn ReadDir) -> Result<Vec<String>, Error> {
     let mut source_files: Vec<String> = vec![];
 
-    for path in dir_reader.iter()? {
+    for path in dir_reader.ls()? {
         if dir_reader.is_file(&path) {
             source_files.push(path);
         }
@@ -16,12 +19,14 @@ pub struct SourceDir {
     pub dir_path: String,
 }
 pub trait ReadDir {
-    fn iter(&self) -> Result<Vec<String>, Error>;
+    /// Lists objects in a directory recursively and returns `Vec<String>` of absolute paths of objects wrapped in `Result<T,E>`
+    fn ls(&self) -> Result<Vec<String>, Error>;
+    /// Returns `true` if the absolute path points to a file on disk
     fn is_file(&self, path: &str) -> bool;
 }
 
 impl ReadDir for SourceDir {
-    fn iter(&self) -> Result<Vec<String>, Error> {
+    fn ls(&self) -> Result<Vec<String>, Error> {
         let mut list: Vec<String> = Vec::new();
         for entry in WalkDir::new(&self.dir_path) {
             let entry = entry?;
@@ -34,5 +39,62 @@ impl ReadDir for SourceDir {
 
     fn is_file(&self, path: &str) -> bool {
         Path::new(path).is_file()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::vec;
+
+    #[test]
+    fn list_it() {
+        let iter: Vec<String> = vec!["/dir1/file1.ext".into(), "/dir1/file2.ext".into()];
+        let expected = iter.clone();
+        let dir = TestSourceDir { iter: iter };
+
+        let result = list(&dir).unwrap();
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn list_filters_dir_paths() {
+        let iter: Vec<String> = vec![
+            "/dir1/file1.ext".into(),
+            "/dir1/file2.ext".into(),
+            "/dir1/sub_dir".into(),
+        ];
+
+        let mut filtered: Vec<String> = vec![];
+        for i in &iter {
+            if is_file(i) {
+                filtered.push(i.to_string());
+            }
+        }
+
+        let dir = TestSourceDir { iter: iter };
+
+        let result = list(&dir).unwrap();
+
+        assert_eq!(result, filtered);
+    }
+
+    struct TestSourceDir {
+        iter: Vec<String>,
+    }
+
+    impl ReadDir for TestSourceDir {
+        fn ls(&self) -> Result<Vec<String>, Error> {
+            Ok(self.iter.to_vec())
+        }
+
+        fn is_file(&self, path: &str) -> bool {
+            is_file(path)
+        }
+    }
+
+    fn is_file(path: &str) -> bool {
+        Path::new(path).extension().is_some()
     }
 }
