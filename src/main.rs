@@ -1,5 +1,6 @@
 use crate::inventory::InventoryPath;
 use log::error;
+use spear::prepare_upload::prepare;
 use spear::settings::Settings;
 use spear::{inventory, source};
 use std::process;
@@ -11,6 +12,15 @@ fn main() {
         dir_path: ".".into(),
     };
     if let Ok(source_paths) = source::list(&source_dir) {
+        let uploads = prepare(
+            source_paths.iter().map(|f| f.as_str()).collect(),
+            vec![],
+            &source_dir.dir_path,
+        );
+        for u in uploads {
+            println!("keys: {}", u.object_key_name());
+        }
+
         for source_path in source_paths {
             println!("source file: {}", source_path);
         }
