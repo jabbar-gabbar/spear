@@ -3,7 +3,8 @@ use walkdir::WalkDir;
 
 /// Returns list of absolute file paths in the source directory recursively.
 /// 
-/// This function will include file paths recursively (in current and sub-directories) and exclude any directory paths in the result `Vec<String>`.
+/// This function will include file paths recursively (in current and sub-directories) and 
+/// exclude any directory paths in the result `Vec<String>`.
 pub fn list(dir_reader: &dyn ReadDir) -> Result<Vec<String>, Error> {
     let mut source_files: Vec<String> = vec![];
 
@@ -19,7 +20,8 @@ pub struct SourceDir {
     pub dir_path: String,
 }
 pub trait ReadDir {
-    /// Lists objects in a directory recursively and returns `Vec<String>` of absolute paths of objects wrapped in `Result<T,E>`
+    /// Lists objects in a directory recursively and returns `Vec<String>` of absolute 
+    /// paths of objects wrapped in `Result<T,E>`
     fn ls(&self) -> Result<Vec<String>, Error>;
     /// Returns `true` if the absolute path points to a file on disk
     fn is_file(&self, path: &str) -> bool;
