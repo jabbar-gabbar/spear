@@ -50,6 +50,13 @@ pub struct UploadItem {
 }
 
 impl UploadItem {
+    pub fn new(file_path: String, object_key_name: String) -> Self {
+        Self {
+            file_path,
+            object_key_name,
+        }
+    }
+
     /// Get a reference to the upload item's file path.
     #[must_use]
     pub fn file_path(&self) -> &str {
