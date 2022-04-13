@@ -1,9 +1,12 @@
+use log::{debug, info, log_enabled, Level};
 use std::{io::Error, path::Path};
 use walkdir::WalkDir;
 
+use crate::inventory::Path as DirPath;
+
 /// Returns list of absolute file paths in the source directory recursively.
-/// 
-/// This function will include file paths recursively (in current and sub-directories) and 
+///
+/// This function will include file paths recursively (in current and sub-directories) and
 /// exclude any directory paths in the result `Vec<String>`.
 pub fn list(dir_reader: &dyn ReadDir) -> Result<Vec<String>, Error> {
     let mut source_files: Vec<String> = vec![];
@@ -13,14 +16,24 @@ pub fn list(dir_reader: &dyn ReadDir) -> Result<Vec<String>, Error> {
             source_files.push(path);
         }
     }
+
+    if log_enabled!(Level::Debug) {
+        debug!(
+            "Read source dir {} with count {}",
+            dir_reader.get_path(),
+            source_files.len()
+        );
+    }
+
     Ok(source_files)
 }
 
 pub struct SourceDir {
     pub dir_path: String,
 }
-pub trait ReadDir {
-    /// Lists objects in a directory recursively and returns `Vec<String>` of absolute 
+
+pub trait ReadDir: DirPath {
+    /// Lists objects in a directory recursively and returns `Vec<String>` of absolute
     /// paths of objects wrapped in `Result<T,E>`
     fn ls(&self) -> Result<Vec<String>, Error>;
     /// Returns `true` if the absolute path points to a file on disk
@@ -29,6 +42,10 @@ pub trait ReadDir {
 
 impl ReadDir for SourceDir {
     fn ls(&self) -> Result<Vec<String>, Error> {
+        if log_enabled!(Level::Info) {
+            info!("Recursively reading source dir {}", &self.dir_path);
+        }
+
         let mut list: Vec<String> = Vec::new();
         for entry in WalkDir::new(&self.dir_path) {
             let entry = entry?;
@@ -41,6 +58,12 @@ impl ReadDir for SourceDir {
 
     fn is_file(&self, path: &str) -> bool {
         Path::new(path).is_file()
+    }
+}
+
+impl DirPath for SourceDir {
+    fn get_path(&self) -> String {
+        self.dir_path.clone()
     }
 }
 
@@ -93,6 +116,11 @@ mod tests {
 
         fn is_file(&self, path: &str) -> bool {
             is_file(path)
+        }
+    }
+    impl DirPath for TestSourceDir {
+        fn get_path(&self) -> String {
+            todo!()
         }
     }
 

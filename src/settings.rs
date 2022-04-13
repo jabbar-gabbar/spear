@@ -1,35 +1,48 @@
-use serde_derive::Deserialize;
-use config::{Config, ConfigError, File};
+use config::{ConfigError, File};
 use log::debug;
+use serde_derive::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct Directory {
-    pub source_directory: String,
-    pub s3_bucket: String,
-    pub inventory_file: String,
+pub struct Backup {
+    source_directory_path: String,
+    s3_bucket: String,
+    inventory_file_path: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Common {
-    pub my_secrets: String,
-}
+impl Backup {
+    /// Get a reference to the backup's source directory path.
+    #[must_use]
+    pub fn source_directory_path(&self) -> &str {
+        self.source_directory_path.as_ref()
+    }
 
+    /// Get a reference to the backup's s3 bucket.
+    #[must_use]
+    pub fn s3_bucket(&self) -> &str {
+        self.s3_bucket.as_ref()
+    }
+
+    /// Get a reference to the backup's inventory file path.
+    #[must_use]
+    pub fn inventory_file_path(&self) -> &str {
+        self.inventory_file_path.as_ref()
+    }
+}
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    pub directory: Vec<Directory>,
-    pub common: Common
+    pub backup: Vec<Backup>,
 }
 
 impl Settings {
     /// Returns `Settings` from Settings.toml configuration file
     pub fn default() -> Result<Self, ConfigError> {
-        Settings::from(String::from("Settings"))
+        Settings::from("Settings")
     }
     /// Returns 'Settings' from `file_name`
-    pub fn from(file_name: String) -> Result<Self, ConfigError> {
+    pub fn from(file_name: &str) -> Result<Self, ConfigError> {
         debug!("Creating new instance of Settings using {}", file_name);
-        let mut s: Config = config::Config::default();
-        s.merge(File::with_name(&file_name))?;
-        s.try_into::<Settings>()
+        let mut cfg = config::Config::default();
+        cfg.merge(File::with_name(&file_name))?;
+        cfg.try_into::<Settings>()
     }
 }

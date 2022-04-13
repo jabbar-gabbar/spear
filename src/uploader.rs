@@ -1,4 +1,4 @@
-use log::info;
+use log::{debug, info, log_enabled, Level};
 
 use crate::{prepare_upload::UploadItem, s3_client::S3PutObject};
 
@@ -8,8 +8,12 @@ pub fn upload(
     s3_bucket: &str,
 ) -> Vec<String> {
     let mut uploaded = vec![];
+    if log_enabled!(Level::Info) {
+        info!("Uploading {} objects to {}", items.len(), s3_bucket);
+    }
+
     for item in items {
-        info!(
+        debug!(
             "Uploading file {} to s3 bucket with key {}/{}",
             item.file_path(),
             s3_bucket,

@@ -4,3 +4,4 @@ pub mod source;
 pub mod prepare_upload;
 pub mod uploader;
 pub mod s3_client;
+pub mod file_backup;
