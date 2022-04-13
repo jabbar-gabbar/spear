@@ -1,5 +1,5 @@
 pub struct S3Client {
-    pub s3: aws_sdk_s3::Client,
+    pub s3: String,
 }
 pub trait S3PutObject {
     fn put_object(&self, bucket: &str, key: &str, file: &str) -> bool;

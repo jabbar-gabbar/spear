@@ -1,40 +1,63 @@
-use std::fs;
-use std::fs::File;
-use std::io::Error;
-use std::io::Write;
+use std::fs::{self, File};
+use std::io::{Error, Write};
+
+use log::{debug, info, log_enabled, Level};
 
 pub struct InventoryPath {
     pub path: String,
 }
 
-pub trait ReadToString {
+pub trait ReadToString: Path {
     fn read_to_string(&self) -> Result<String, Error>;
+}
+pub trait Path {
+    fn get_path(&self) -> String;
 }
 
 impl ReadToString for InventoryPath {
     fn read_to_string(&self) -> Result<String, Error> {
+        if log_enabled!(Level::Info) {
+            info!("Reading inventory {}", &self.path);
+        }
         Ok(fs::read_to_string(&self.path)?)
+    }
+}
+
+impl Path for InventoryPath {
+    fn get_path(&self) -> String {
+        self.path.clone()
     }
 }
 
 pub fn list(read_to_string_impl: &dyn ReadToString) -> Result<Vec<String>, Error> {
     let content = read_to_string_impl.read_to_string()?;
 
-    let mut lines: Vec<String> = Vec::new();
+    let mut inv_list: Vec<String> = Vec::new();
 
     for line in content.lines() {
-        lines.push(String::from(line));
+        inv_list.push(String::from(line));
     }
 
-    Ok(lines)
+    if log_enabled!(Level::Debug) {
+        debug!(
+            "Finished listing inventory file {} with count {}",
+            read_to_string_impl.get_path(),
+            inv_list.len()
+        );
+    }
+
+    Ok(inv_list)
 }
 
-pub trait Append {
+pub trait Append: Path {
     fn append(&self, new_content: &String) -> Result<(), Error>;
 }
 
 impl Append for InventoryPath {
     fn append(&self, new_content: &String) -> Result<(), Error> {
+        if log_enabled!(Level::Info) {
+            info!("Appending inventory {}", &self.path);
+        }
         let mut option = fs::OpenOptions::new();
         let mut file: File = option.create(true).append(true).open(&self.path)?;
 
@@ -42,9 +65,23 @@ impl Append for InventoryPath {
     }
 }
 
-pub fn append(append_impl: &dyn Append, new_content: &mut String) -> Result<(), Error> {
+pub fn append(append_impl: &dyn Append, uploaded: &Vec<String>) -> Result<(), Error> {
+    if uploaded.is_empty() {
+        return Ok(());
+    }
+    let mut new_content = uploaded.join("\n");
     new_content.push_str("\n");
-    Ok(append_impl.append(new_content)?)
+    append_impl.append(&new_content)?;
+
+    if log_enabled!(Level::Debug) {
+        debug!(
+            "Appended inventory file {} with count {}",
+            append_impl.get_path(),
+            uploaded.len()
+        );
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -53,11 +90,18 @@ mod tests {
     use super::*;
 
     struct TestInventoryPath {
-        content: String,
+        new_content: String,
+        expected_content: String,
     }
+
     impl ReadToString for TestInventoryPath {
         fn read_to_string(&self) -> Result<String, Error> {
-            Ok(String::from(&self.content))
+            Ok(String::from(&self.new_content))
+        }
+    }
+    impl Path for TestInventoryPath {
+        fn get_path(&self) -> String {
+            todo!()
         }
     }
 
@@ -65,27 +109,43 @@ mod tests {
     fn list_inventory() {
         let expected: Vec<String> = vec!["line1".into(), "line2".into()];
         let test_inventory_file = TestInventoryPath {
-            content: expected.join("\r\n"),
+            new_content: expected.join("\n"),
+            expected_content: "".into(),
         };
         assert_eq!(list(&test_inventory_file).unwrap(), expected);
     }
 
     impl Append for TestInventoryPath {
-        fn append(&self, _: &String) -> Result<(), Error> {
+        fn append(&self, new_content: &String) -> Result<(), Error> {
+            assert_eq!(new_content, &self.expected_content);
             Ok(())
         }
     }
 
     #[test]
     fn append_inserts_new_line() {
-        let test_inventory_path = TestInventoryPath { content: "".into() };
+        let new_content = "";
+        let uploaded = vec![new_content.to_string()];
 
-        let mut new_content: String = "".into();
-        let mut expected: String = new_content.clone();
+        let mut expected = uploaded.join("\n");
         expected.push_str("\n");
 
-        append(&test_inventory_path, &mut new_content).unwrap();
+        let test_inventory = TestInventoryPath {
+            new_content: new_content.into(),
+            expected_content: expected.into(),
+        };
 
-        assert_eq!(new_content, expected);
+        append(&test_inventory, &uploaded).unwrap();
+    }
+
+    #[test]
+    fn append_skips_when_uploaded_is_empty() {
+        let uploaded = vec![];
+        let test_inventory = TestInventoryPath {
+            new_content: "".into(),
+            expected_content: "".into(),
+        };
+        let result = append(&test_inventory, &uploaded).unwrap();
+        assert_eq!(result, ());
     }
 }

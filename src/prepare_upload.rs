@@ -1,10 +1,11 @@
+use log::{log_enabled, Level, info};
 use regex::Regex;
 use std::{borrow::Borrow, collections::HashSet};
 
 /// Prepares upload list from the source paths using inventory list and source dir path
 pub fn prepare(
-    file_paths: Vec<&str>,
-    inventory_list: Vec<&str>,
+    file_paths: &Vec<String>,
+    inventory_list: &Vec<String>,
     source_dir: &str,
 ) -> Vec<UploadItem> {
     let mut uploads: Vec<UploadItem> = vec![];
@@ -27,6 +28,16 @@ pub fn prepare(
             });
         }
     }
+
+    if log_enabled!(Level::Info) {
+        info!(
+            "Prepared {} uploads from {} source using {} inventory",
+            uploads.len(),
+            file_paths.len(),
+            inventory_list.len()
+        );
+    }
+
     uploads
 }
 
@@ -77,38 +88,42 @@ mod tests {
 
     #[test]
     fn prepare_it() {
-        let file_paths: Vec<&str> = vec![
-            "/top_dir/dir1/file1.ext",
-            "/top_dir/dir1/dir2/file2.ext",
-            "/top_dir/dir2/file3.ext",
+        let file_paths: Vec<String> = vec![
+            "/top_dir/dir1/file1.ext".to_string(),
+            "/top_dir/dir1/dir2/file2.ext".to_string(),
+            "/top_dir/dir2/file3.ext".to_string(),
         ];
-        let inventory: Vec<&str> = vec![];
+        let inventory: Vec<String> = vec![];
         let source_dir = "/top_dir/";
 
-        let uploads = prepare(file_paths, inventory, source_dir);
+        let uploads = prepare(&file_paths, &inventory, source_dir);
 
         assert_eq!(3, uploads.len());
     }
 
     #[test]
     fn prepare_returns_empty() {
-        let file_paths: Vec<&str> = vec!["/top_dir/dir1/file1.ext", "/top_dir/dir2/file3.ext"];
-        let inventory: Vec<&str> = vec!["dir1/file1.ext", "dir2/file3.ext"];
+        let file_paths: Vec<String> = vec![
+            "/top_dir/dir1/file1.ext".to_string(),
+            "/top_dir/dir2/file3.ext".to_string(),
+        ];
+        let inventory: Vec<String> =
+            vec!["dir1/file1.ext".to_string(), "dir2/file3.ext".to_string()];
         let source_dir = "/top_dir/";
 
-        let uploads = prepare(file_paths, inventory, source_dir);
+        let uploads = prepare(&file_paths, &inventory, source_dir);
 
         assert_eq!(0, uploads.len());
     }
 
     #[test]
     fn prepare_removes_slash_from_0th_idx_in_object_key() {
-        let file_paths: Vec<&str> = vec!["/top_dir/dir/file.ext"];
+        let file_paths: Vec<String> = vec!["/top_dir/dir/file.ext".to_string()];
         let expected = "dir/file.ext";
-        let inventory: Vec<&str> = vec![];
+        let inventory: Vec<String> = vec![];
         let source_dir = "/top_dir";
 
-        let uploads: Vec<UploadItem> = prepare(file_paths, inventory, source_dir);
+        let uploads: Vec<UploadItem> = prepare(&file_paths, &inventory, source_dir);
         let actual = uploads
             .get(0)
             .map(|u| u.object_key_name())
@@ -119,22 +134,22 @@ mod tests {
     #[test]
     fn prepare_skips_shorter_file_paths_than_source_dir() {
         let only_file = "file1.ext";
-        let file_paths: Vec<&str> = vec![&only_file];
-        let inventory: Vec<&str> = vec![];
+        let file_paths: Vec<String> = vec![only_file.to_string()];
+        let inventory: Vec<String> = vec![];
         let source_dir = "/top_dir/dir1";
 
-        let uploads: Vec<UploadItem> = prepare(file_paths, inventory, source_dir);
+        let uploads: Vec<UploadItem> = prepare(&file_paths, &inventory, source_dir);
         assert!(only_file.len() < source_dir.len());
         assert_eq!(uploads.len(), 0);
     }
 
     #[test]
     fn prepare_sanitizes_file_paths() {
-        let file_paths: Vec<&str> = vec!["/top_dir/dir1/file1{}%^`[]>~<#|.ext"];
-        let inventory: Vec<&str> = vec![];
+        let file_paths: Vec<String> = vec!["/top_dir/dir1/file1{}%^`[]>~<#|.ext".to_string()];
+        let inventory: Vec<String> = vec![];
         let source_dir = "/top_dir/";
 
-        let uploads = prepare(file_paths, inventory, source_dir);
+        let uploads = prepare(&file_paths, &inventory, source_dir);
 
         assert_eq!(1, uploads.len());
         assert_eq!(
@@ -148,12 +163,15 @@ mod tests {
 
     #[test]
     fn prepare_filters_inventory_paths() {
-        let file_paths: Vec<&str> = vec!["/top_dir/dir1/file1.ext", "/top_dir/dir1/file2.ext"];
-        let inventory: Vec<&str> = vec!["dir1/file1.ext"];
+        let file_paths: Vec<String> = vec![
+            "/top_dir/dir1/file1.ext".to_string(),
+            "/top_dir/dir1/file2.ext".to_string(),
+        ];
+        let inventory: Vec<String> = vec!["dir1/file1.ext".to_string()];
         let source_dir = "/top_dir/";
         let expected = "dir1/file2.ext";
 
-        let uploads = prepare(file_paths, inventory, source_dir);
+        let uploads = prepare(&file_paths, &inventory, source_dir);
         assert_eq!(1, uploads.len());
         assert_eq!(
             expected,
@@ -166,21 +184,21 @@ mod tests {
 
     #[test]
     fn prepare_for_win_system() {
-        let file_paths: Vec<&str> = vec![
-            "c:\\\\top_dir\\dir1\\file1.ext",
-            "c:\\\\top_dir\\dir1\\dir2\\file2.ext",
-            "c:\\\\top_dir\\dir2\\file3.ext",
+        let file_paths: Vec<String> = vec![
+            "c:\\\\top_dir\\dir1\\file1.ext".to_string(),
+            "c:\\\\top_dir\\dir1\\dir2\\file2.ext".to_string(),
+            "c:\\\\top_dir\\dir2\\file3.ext".to_string(),
         ];
-        let inventory: Vec<&str> = vec!["dir2/file3.ext"];
+        let inventory: Vec<String> = vec!["dir2/file3.ext".to_string()];
         let source_dir = "c:\\\\top_dir";
 
-        let filtered_set: HashSet<&str> = inventory.iter().cloned().collect();
+        let filtered_set: HashSet<String> = inventory.iter().cloned().collect();
 
-        let uploads = prepare(file_paths, inventory, source_dir);
+        let uploads = prepare(&file_paths, &inventory, source_dir);
 
         assert_eq!(2, uploads.len());
         for u in uploads {
-            assert_eq!(None, filtered_set.get(&u.object_key_name()));
+            assert_eq!(None, filtered_set.get(u.object_key_name()));
         }
     }
 }
