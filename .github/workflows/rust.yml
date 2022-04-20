@@ -1,10 +1,10 @@
 name: Rust
 
 on:
-  push:
-    branches: [pi-build]
-  pull_request:
-    branches: [main]
+  push
+  #   branches: [pi-build]
+  # pull_request:
+  #   branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
