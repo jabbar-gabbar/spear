@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, raspberry-pi]
+        build: [raspberry-pi]
         include:
           - build: raspberry-pi
             os: ubuntu-latest
