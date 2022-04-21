@@ -43,12 +43,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux]
+        build: [linux, raspberry-pi]
         include:
           - build: linux
             os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-gnu
+          - build: raspberry-pi
+            os: ubuntu-latest
+            rust: stable
+            target: armv7-unknown-linux-gnueabihf
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -67,6 +71,17 @@ jobs:
           profile: minimal
           override: true
           target: ${{ matrix.target }}
+      - name: Prepare for raspberry-pi cross compile
+        run: |
+          if [ "${{ matrix.os }}" = "raspberry-pi" ]; then
+          sudo apt-get install -qq gcc-arm-linux-gnueabihf
+          rustup target add armv7-unknown-linux-gnueabihf
+          mkdir -p ~/.cargo
+          cat >>~/.cargo/config <<EOF
+          [target.armv7-unknown-linux-gnueabihf]
+          linker = "arm-linux-gnueabihf-gcc"
+          EOF
+          fi
       - name: Build release binary
         run: cargo build --target ${{ matrix.target }} --verbose --release
       - name: Build archive
@@ -81,7 +96,7 @@ jobs:
             cd "$staging"
             7z a "../$staging.zip" .
             echo "ASSET=$staging.zip" >> $GITHUB_ENV
-          else
+          else 
             cp "target/${{ matrix.target }}/release/${{ env.BIN_NAME }}" "$staging/"
             tar czf "$staging.tar.gz" -C "$staging" .
             echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
