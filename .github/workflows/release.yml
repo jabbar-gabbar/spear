@@ -45,10 +45,10 @@ jobs:
       matrix:
         build: [linux, raspberry-pi]
         include:
-          - build: linux
-            os: ubuntu-latest
-            rust: stable
-            target: x86_64-unknown-linux-gnu
+          # - build: linux
+          #   os: ubuntu-latest
+          #   rust: stable
+          #   target: x86_64-unknown-linux-gnu
           - build: raspberry-pi
             os: ubuntu-latest
             rust: stable
@@ -73,7 +73,7 @@ jobs:
           target: ${{ matrix.target }}
       - name: Prepare for raspberry-pi cross compile
         run: |
-          if [ "${{ matrix.os }}" = "raspberry-pi" ]; then
+          if [ "${{ matrix.build }}" = "raspberry-pi" ]; then
           sudo apt-get install -qq gcc-arm-linux-gnueabihf
           rustup target add armv7-unknown-linux-gnueabihf
           mkdir -p ~/.cargo
