@@ -45,10 +45,6 @@ jobs:
       matrix:
         build: [linux, raspberry-pi]
         include:
-          # - build: linux
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: x86_64-unknown-linux-gnu
           - build: raspberry-pi
             os: ubuntu-latest
             rust: stable
