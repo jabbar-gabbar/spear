@@ -24,6 +24,8 @@ jobs:
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "version is: ${{ env.RELEASE_VERSION }}"
+          ls -la /
+          sudo ls -la /
       - name: Create Github release
         id: release
         uses: actions/create-release@v1
@@ -70,12 +72,17 @@ jobs:
       - name: Prepare Ubuntu for raspberry-pi cross compile
         if: matrix.build == 'raspberry-pi'
         run: |
-          wget https://musl.cc/arm-linux-musleabihf-cross.tgz
+          wget -P / https://musl.cc/arm-linux-musleabihf-cross.tgz -q --show-progress
+          ls -la /
           tar -xf arm-linux-musleabihf-cross.tgz
+          ls -la /arm-linux-musleabihf-cross
           ln -s /arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
           cat >>~/.cargo/config.toml <<EOF
           [target.armv7-unknown-linux-musleabihf]
           linker = "arm-linux-musleabihf-gcc"
+          echo `cat ~/.cargo/config.toml`
+          echo `ls -la /usr/local/bin/`
+          echo `ls -la /arm-linux-musleabihf-cross/bin/`
           EOF
       - name: Build release binary
         run: cargo build --target ${{ matrix.target }} --verbose --release
