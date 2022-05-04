@@ -59,7 +59,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xz-utils liblz4-tool libssl-dev curl wget build-essential
+          sudo apt-get install -y --no-install-recommends xz-utils liblz4-tool libssl-dev wget build-essential
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -70,7 +70,6 @@ jobs:
       - name: Prepare Ubuntu for raspberry-pi cross compile
         if: matrix.build == 'raspberry-pi'
         run: |
-          mkdir /usr/local/opt
           wget https://musl.cc/arm-linux-musleabihf-cross.tgz
           tar -xf arm-linux-musleabihf-cross.tgz
           ln -s /arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
