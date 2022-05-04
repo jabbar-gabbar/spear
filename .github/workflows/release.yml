@@ -26,6 +26,8 @@ jobs:
           echo "version is: ${{ env.RELEASE_VERSION }}"
           echo "current dir:"
           pwd
+          sudo mkdir /musl-cross
+          echo "dir created"
           wget -q --show-progress -P /musl-cross https://musl.cc/arm-linux-musleabihf-cross.tgz
           ls -la /musl-cross
           tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
