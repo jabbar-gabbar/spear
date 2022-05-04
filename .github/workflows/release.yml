@@ -1,4 +1,4 @@
-# The release.yml is created using following reference:
+# This is derived from following reference,
 # https://github.com/crate-ci/cargo-release/blob/master/.github/workflows/post-release.yml
 name: Release
 
@@ -32,11 +32,6 @@ jobs:
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           release_name: ${{ env.RELEASE_VERSION }}
-          body: |
-            Changes in this Release
-            - First Change
-            - Second Change
-            - Third change
           prerelease: true
   build-release:
     name: build-release
@@ -44,12 +39,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [raspberry-pi]
+        build: [raspberry-pi, linux]
         include:
           - build: raspberry-pi
-            os: macos-latest
+            os: ubuntu-latest
             rust: stable
             target: armv7-unknown-linux-musleabihf
+          - build: linux
+            os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-gnu
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
@@ -60,7 +59,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xz-utils liblz4-tool libssl-dev
+          sudo apt-get install -y --no-install-recommends xz-utils liblz4-tool libssl-dev curl wget build-essential
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -68,19 +67,17 @@ jobs:
           profile: minimal
           override: true
           target: ${{ matrix.target }}
-      - name: Prepare for raspberry-pi cross compile
+      - name: Prepare Ubuntu for raspberry-pi cross compile
+        if: matrix.build == 'raspberry-pi'
         run: |
-          if [ "${{ matrix.build }}" = "raspberry-pi" ]; then
-          brew install FiloSottile/musl-cross/musl-cross
-          brew reinstall FiloSottile/musl-cross/musl-cross --without-x86_64 --with-arm-hf
-          ls /usr/local/opt/musl-cross/bin
-          rustup target add armv7-unknown-linux-musleabihf
-          mkdir -p ~/.cargo
+          mkdir /usr/local/opt
+          wget https://musl.cc/arm-linux-musleabihf-cross.tgz
+          tar -xf arm-linux-musleabihf-cross.tgz
+          ln -s /arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
           cat >>~/.cargo/config.toml <<EOF
           [target.armv7-unknown-linux-musleabihf]
           linker = "arm-linux-musleabihf-gcc"
           EOF
-          fi
       - name: Build release binary
         run: cargo build --target ${{ matrix.target }} --verbose --release
       - name: Build archive
@@ -89,7 +86,7 @@ jobs:
           outdir="./target/${{ env.TARGET_DIR }}/release"
           staging="${{ env.BIN_NAME }}-${{ needs.create-release.outputs.release_version }}-${{ matrix.target }}"
           mkdir -p "$staging"/complete
-          cp {README.md,LICENSE} "$staging/"
+          cp {README.md,LICENSE,Settings.toml} "$staging/"
           if [ "${{ matrix.os }}" = "windows-2019" ]; then
             cp "target/${{ matrix.target }}/release/${{ env.BIN_NAME }}.exe" "$staging/"
             cd "$staging"

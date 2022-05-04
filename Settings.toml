@@ -1,12 +1,9 @@
-[common]
-my_secrets = ""
-
-[[directory]]
-source_directory  = ""
+[[backup]]
+source_directory_path  = ""
 s3_bucket = ""
-inventory_file = ""
+inventory_file_path = ""
 
-[[directory]]
-source_directory  = ""
+[[backup]]
+source_directory_path  = ""
 s3_bucket = ""
-inventory_file = ""
+inventory_file_path = ""
