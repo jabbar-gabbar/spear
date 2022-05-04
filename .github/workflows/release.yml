@@ -24,8 +24,14 @@ jobs:
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "version is: ${{ env.RELEASE_VERSION }}"
-          ls -la /
-          sudo ls -la /
+          echo `current dir:`
+          pwd
+          wget -q --show-progress -P /musl-cross https://musl.cc/arm-linux-musleabihf-cross.tgz
+          ls -la /musl-cross
+          tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
+          ls -la /musl-cross
+          ls -la /musl-cross/arm-linux-musleabihf-cross/bin/
+          ls
       - name: Create Github release
         id: release
         uses: actions/create-release@v1
@@ -72,17 +78,20 @@ jobs:
       - name: Prepare Ubuntu for raspberry-pi cross compile
         if: matrix.build == 'raspberry-pi'
         run: |
-          wget -P / https://musl.cc/arm-linux-musleabihf-cross.tgz -q --show-progress
-          ls -la /
-          tar -xf arm-linux-musleabihf-cross.tgz
-          ls -la /arm-linux-musleabihf-cross
-          ln -s /arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
+          wget -q --show-progress -P /musl-cross https://musl.cc/arm-linux-musleabihf-cross.tgz
+          tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
+          ls -la /musl-cross
+          ln -s /musl-cross/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
           cat >>~/.cargo/config.toml <<EOF
           [target.armv7-unknown-linux-musleabihf]
           linker = "arm-linux-musleabihf-gcc"
-          echo `cat ~/.cargo/config.toml`
-          echo `ls -la /usr/local/bin/`
-          echo `ls -la /arm-linux-musleabihf-cross/bin/`
+          echo "content of config.toml :"
+          cat ~/.cargo/config.toml
+          echo "ls of /usr/local/bin/ :"
+          ls -la /usr/local/bin/
+          echo "ls of /musl-cross/arm-linux-musleabihf-cross/bin/: "
+          ls -la /musl-cross/arm-linux-musleabihf-cross/bin/
+          echo "configured"
           EOF
       - name: Build release binary
         run: cargo build --target ${{ matrix.target }} --verbose --release
