@@ -35,7 +35,9 @@ jobs:
           ls -la
           sudo mv arm-linux-musleabihf-cross.tgz /musl-cross
           echo "moved"
-          sudo cd /musl-cross
+          cd /musl-cross
+          echo "current dir: "
+          pwd
           echo "entered in /musl-cross"
           sudo ls -la
           echo "extracting"
