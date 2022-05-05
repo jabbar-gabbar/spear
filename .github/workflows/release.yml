@@ -34,15 +34,18 @@ jobs:
           echo "downloaded: "
           ls -la
           sudo mv arm-linux-musleabihf-cross.tgz /musl-cross
-          echo "moved to: "
-          sudo ls -la /musl-cross
-          sudo tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
-          echo "extracted at: "
-          sudo ls -la /musl-cross
+          echo "moved"
+          sudo cd /musl-cross
+          echo "entered in /musl-cross"
+          sudo ls -la
+          echo "extracting"
+          sudo tar -xf arm-linux-musleabihf-cross.tgz
+          echo "extracted: "
+          sudo ls -la
           echo "in extracted: "
-          sudo ls /musl-cross/arm-linux-musleabihf-cross
+          sudo ls arm-linux-musleabihf-cross
           echo "in bin: "
-          sudo ls /musl-cross/arm-linux-musleabihf-cross/bin
+          sudo ls arm-linux-musleabihf-cross/bin
       - name: Create Github release
         id: release
         uses: actions/create-release@v1
