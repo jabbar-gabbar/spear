@@ -26,6 +26,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends xz-utils liblz4-tool libssl-dev wget
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "version is: ${{ env.RELEASE_VERSION }}"
+          cd ~
+          pwd
+          ls -la
       - name: Create Github release
         id: release
         uses: actions/create-release@v1
@@ -74,9 +77,8 @@ jobs:
         run: |
           wget --no-verbose https://musl.cc/arm-linux-musleabihf-cross.tgz
           tar -xf arm-linux-musleabihf-cross.tgz
-          ls -la
-          sudo ln -s ./arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
-          ls -la /usr/local/bin
+          pwd
+          ln -s "$(pwd)"/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
           ls -la /usr/local/bin/arm-linux-musleabihf-gcc
           sudo cat >>~/.cargo/config.toml <<EOF
           [target.armv7-unknown-linux-musleabihf]
@@ -84,10 +86,6 @@ jobs:
           EOF
           echo "content of config.toml :"
           sudo cat ~/.cargo/config.toml
-          echo "ls of /usr/local/bin/ :"
-          sudo ls -la /usr/local/bin/
-          echo "ls of /musl-cross/arm-linux-musleabihf-cross/bin/: "
-          sudo ls -la /musl-cross/arm-linux-musleabihf-cross/bin/
           echo "configured"
           EOF
       - name: Build release binary
