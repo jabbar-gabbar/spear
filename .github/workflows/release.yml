@@ -26,28 +26,6 @@ jobs:
           sudo apt-get install -y --no-install-recommends xz-utils liblz4-tool libssl-dev wget
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "version is: ${{ env.RELEASE_VERSION }}"
-          echo "current dir:"
-          pwd
-          sudo mkdir /musl-cross
-          echo "dir created"
-          wget --no-verbose https://musl.cc/arm-linux-musleabihf-cross.tgz
-          echo "downloaded: "
-          ls -la
-          mv arm-linux-musleabihf-cross.tgz /musl-cross
-          echo "moved"
-          cd /musl-cross
-          echo "current dir: "
-          pwd
-          echo "entered in /musl-cross"
-          ls -la
-          echo "extracting"
-          tar -xf arm-linux-musleabihf-cross.tgz
-          echo "extracted: "
-          ls -la
-          echo "in extracted: "
-          ls -la arm-linux-musleabihf-cross
-          echo "in bin: "
-          ls -la arm-linux-musleabihf-cross/bin
       - name: Create Github release
         id: release
         uses: actions/create-release@v1
@@ -94,11 +72,12 @@ jobs:
       - name: Prepare Ubuntu for raspberry-pi cross compile
         if: matrix.build == 'raspberry-pi'
         run: |
-          sudo mkdir /musl-cross
-          sudo wget -q --show-progress -P /musl-cross https://musl.cc/arm-linux-musleabihf-cross.tgz
-          sudo tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
-          sudo mkdir /musl-crossls -la /musl-cross
-          sudo ln -s /musl-cross/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
+          wget --no-verbose https://musl.cc/arm-linux-musleabihf-cross.tgz
+          tar -xf arm-linux-musleabihf-cross.tgz
+          ls -la
+          sudo ln -s ./arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
+          ls -la /usr/local/bin
+          ls -la /usr/local/bin/arm-linux-musleabihf-gcc
           sudo cat >>~/.cargo/config.toml <<EOF
           [target.armv7-unknown-linux-musleabihf]
           linker = "arm-linux-musleabihf-gcc"
