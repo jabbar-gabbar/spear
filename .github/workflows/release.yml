@@ -30,24 +30,24 @@ jobs:
           pwd
           sudo mkdir /musl-cross
           echo "dir created"
-          sudo wget -q --show-progress https://musl.cc/arm-linux-musleabihf-cross.tgz
+          wget --no-verbose https://musl.cc/arm-linux-musleabihf-cross.tgz
           echo "downloaded: "
           ls -la
-          sudo mv arm-linux-musleabihf-cross.tgz /musl-cross
+          mv arm-linux-musleabihf-cross.tgz /musl-cross
           echo "moved"
           cd /musl-cross
           echo "current dir: "
           pwd
           echo "entered in /musl-cross"
-          sudo ls -la
+          ls -la
           echo "extracting"
-          sudo tar -xf arm-linux-musleabihf-cross.tgz
+          tar -xf arm-linux-musleabihf-cross.tgz
           echo "extracted: "
-          sudo ls -la
+          ls -la
           echo "in extracted: "
-          sudo ls arm-linux-musleabihf-cross
+          ls -la arm-linux-musleabihf-cross
           echo "in bin: "
-          sudo ls arm-linux-musleabihf-cross/bin
+          ls -la arm-linux-musleabihf-cross/bin
       - name: Create Github release
         id: release
         uses: actions/create-release@v1
@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [raspberry-pi, linux]
+        build: [raspberry-pi]
         include:
           - build: raspberry-pi
             os: ubuntu-latest
