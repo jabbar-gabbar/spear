@@ -30,15 +30,19 @@ jobs:
           pwd
           sudo mkdir /musl-cross
           echo "dir created"
-          wget -q --show-progress https://musl.cc/arm-linux-musleabihf-cross.tgz
+          sudo wget -q --show-progress https://musl.cc/arm-linux-musleabihf-cross.tgz
           echo "downloaded: "
           ls -la
           sudo mv arm-linux-musleabihf-cross.tgz /musl-cross
-          ls -la /musl-cross
+          echo "moved to: "
+          sudo ls -la /musl-cross
           sudo tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
-          ls -la /musl-cross
-          ls -la /musl-cross/arm-linux-musleabihf-cross/bin/
-          ls
+          echo "extracted at: "
+          sudo ls -la /musl-cross
+          echo "in extracted: "
+          sudo ls /musl-cross/arm-linux-musleabihf-cross
+          echo "in bin: "
+          sudo ls /musl-cross/arm-linux-musleabihf-cross/bin
       - name: Create Github release
         id: release
         uses: actions/create-release@v1
@@ -85,19 +89,21 @@ jobs:
       - name: Prepare Ubuntu for raspberry-pi cross compile
         if: matrix.build == 'raspberry-pi'
         run: |
-          wget -q --show-progress -P /musl-cross https://musl.cc/arm-linux-musleabihf-cross.tgz
-          tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
-          ls -la /musl-cross
-          ln -s /musl-cross/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
-          cat >>~/.cargo/config.toml <<EOF
+          sudo mkdir /musl-cross
+          sudo wget -q --show-progress -P /musl-cross https://musl.cc/arm-linux-musleabihf-cross.tgz
+          sudo tar -xf /musl-cross/arm-linux-musleabihf-cross.tgz
+          sudo mkdir /musl-crossls -la /musl-cross
+          sudo ln -s /musl-cross/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc /usr/local/bin/arm-linux-musleabihf-gcc
+          sudo cat >>~/.cargo/config.toml <<EOF
           [target.armv7-unknown-linux-musleabihf]
           linker = "arm-linux-musleabihf-gcc"
+          EOF
           echo "content of config.toml :"
-          cat ~/.cargo/config.toml
+          sudo cat ~/.cargo/config.toml
           echo "ls of /usr/local/bin/ :"
-          ls -la /usr/local/bin/
+          sudo ls -la /usr/local/bin/
           echo "ls of /musl-cross/arm-linux-musleabihf-cross/bin/: "
-          ls -la /musl-cross/arm-linux-musleabihf-cross/bin/
+          sudo ls -la /musl-cross/arm-linux-musleabihf-cross/bin/
           echo "configured"
           EOF
       - name: Build release binary
