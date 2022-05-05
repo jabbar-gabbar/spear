@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [raspberry-pi, linux]
+        build: [raspberry-pi, linux, win-msvc]
         include:
           - build: raspberry-pi
             os: ubuntu-latest
@@ -49,6 +49,10 @@ jobs:
             os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-gnu
+          - build: win-msvc
+            os: windows-2019
+            rust: stable
+            target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
