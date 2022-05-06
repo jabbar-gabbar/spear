@@ -44,11 +44,11 @@ In the second instance, I've used macOS as host and armv7-unknown-linux-musleabi
 ```console
 brew install FiloSottile/musl-cross/musl-cross
 brew reinstall FiloSottile/musl-cross/musl-cross --without-x86_--with-arm-hf
-# if the last steps fails, run below to install musl-cross:
+# if the above step fails, try to update xcode update as below to install musl-cross:
     sudo rm -rf /Library/Developer/CommandLineTools
     xcode-select --install
     brew reinstall FiloSottile/musl-cross/musl-cross --without-x86_--with-arm-hf
-# end if
+#
 
 rustup target add armv7-unknown-linux-musleabihf
 [target.armv7-unknown-linux-musleabihf]
