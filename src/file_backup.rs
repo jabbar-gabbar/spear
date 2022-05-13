@@ -3,13 +3,13 @@ use log::{error, info, log_enabled, Level};
 use crate::{
     inventory::{self, InventoryPath},
     prepare_upload,
-    s3_client::S3Client,
+    aws_s3::AwsS3,
     settings::Settings,
     source::{self, SourceDir},
     uploader,
 };
 
-pub fn run(settings: Settings) {
+pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
     for backup in settings.backup {
         if log_enabled!(Level::Info) {
             log_backing_up(
@@ -57,11 +57,7 @@ pub fn run(settings: Settings) {
 
         let prepared = prepare_upload::prepare(&source, &inventory, backup.source_directory_path());
 
-        let s3_client = S3Client {
-            s3: String::from("a fake s3 client"),
-        };
-
-        let uploaded = uploader::upload(&s3_client, &prepared, backup.s3_bucket());
+        let uploaded = uploader::upload(aws_s3, &prepared, backup.s3_bucket()).await;
 
         match inventory::append(&inv_path, &uploaded) {
             Ok(_) => {}

@@ -17,8 +17,8 @@ pub fn list(dir_reader: &dyn ReadDir) -> Result<Vec<String>, Error> {
         }
     }
 
-    if log_enabled!(Level::Debug) {
-        debug!(
+    if log_enabled!(Level::Info) {
+        info!(
             "Read source dir {} with count {}",
             dir_reader.get_path(),
             source_files.len()
