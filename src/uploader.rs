@@ -1,12 +1,8 @@
 use log::{debug, info, log_enabled, Level};
 
-use crate::{prepare_upload::UploadItem, aws_s3::AwsS3};
+use crate::{aws_s3::AwsS3, prepare_upload::UploadItem};
 
-pub async fn upload(
-    aws_s3: &dyn AwsS3,
-    items: &Vec<UploadItem>,
-    s3_bucket: &str,
-) -> Vec<String> {
+pub async fn upload(aws_s3: &dyn AwsS3, items: &Vec<UploadItem>, s3_bucket: &str) -> Vec<String> {
     let mut uploaded = vec![];
     if log_enabled!(Level::Info) {
         info!("Uploading {} objects to {}", items.len(), s3_bucket);
@@ -19,7 +15,10 @@ pub async fn upload(
             s3_bucket,
             item.object_key_name()
         );
-        if aws_s3.put_object(s3_bucket, item.object_key_name(), item.file_path()).await {
+        if aws_s3
+            .put_object(s3_bucket, item.object_key_name(), item.file_path())
+            .await
+        {
             uploaded.push(item.object_key_name().to_string());
         }
     }
@@ -28,8 +27,8 @@ pub async fn upload(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use async_trait::async_trait;
+    use std::collections::HashMap;
 
     use super::*;
 

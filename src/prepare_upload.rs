@@ -1,4 +1,4 @@
-use log::{log_enabled, Level, info};
+use log::{info, log_enabled, Level};
 use regex::Regex;
 use std::{borrow::Borrow, collections::HashSet};
 

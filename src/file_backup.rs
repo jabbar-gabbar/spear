@@ -1,9 +1,9 @@
 use log::{error, info, log_enabled, Level};
 
 use crate::{
+    aws_s3::AwsS3,
     inventory::{self, InventoryPath},
     prepare_upload,
-    aws_s3::AwsS3,
     settings::Settings,
     source::{self, SourceDir},
     uploader,
