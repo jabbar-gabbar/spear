@@ -38,8 +38,8 @@ pub fn list(read_to_string_impl: &dyn ReadToString) -> Result<Vec<String>, Error
         inv_list.push(String::from(line));
     }
 
-    if log_enabled!(Level::Debug) {
-        debug!(
+    if log_enabled!(Level::Info) {
+        info!(
             "Finished listing inventory file {} with count {}",
             read_to_string_impl.get_path(),
             inv_list.len()
@@ -73,8 +73,8 @@ pub fn append(append_impl: &dyn Append, uploaded: &Vec<String>) -> Result<(), Er
     new_content.push_str("\n");
     append_impl.append(&new_content)?;
 
-    if log_enabled!(Level::Debug) {
-        debug!(
+    if log_enabled!(Level::Info) {
+        info!(
             "Appended inventory file {} with count {}",
             append_impl.get_path(),
             uploaded.len()

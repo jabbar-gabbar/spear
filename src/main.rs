@@ -1,8 +1,10 @@
-use log::{error};
-use spear::{file_backup, settings::Settings};
+use aws_sdk_s3::Client;
+use log::error;
+use spear::{aws_s3::S3Client, file_backup, settings::Settings};
 use std::process;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
 
     let settings = Settings::default().unwrap_or_else(|err| {
@@ -10,5 +12,9 @@ fn main() {
         process::exit(1);
     });
 
-    file_backup::run(settings);
+    let config = aws_config::from_env().load().await;
+    let client = Client::new(&config);
+    let s3_client = S3Client { s3: client };
+
+    file_backup::run(settings, &s3_client).await;
 }

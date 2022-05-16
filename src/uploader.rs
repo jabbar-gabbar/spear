@@ -1,12 +1,8 @@
 use log::{debug, info, log_enabled, Level};
 
-use crate::{prepare_upload::UploadItem, s3_client::S3PutObject};
+use crate::{aws_s3::AwsS3, prepare_upload::UploadItem};
 
-pub fn upload(
-    s3_client: &dyn S3PutObject,
-    items: &Vec<UploadItem>,
-    s3_bucket: &str,
-) -> Vec<String> {
+pub async fn upload(aws_s3: &dyn AwsS3, items: &Vec<UploadItem>, s3_bucket: &str) -> Vec<String> {
     let mut uploaded = vec![];
     if log_enabled!(Level::Info) {
         info!("Uploading {} objects to {}", items.len(), s3_bucket);
@@ -19,7 +15,10 @@ pub fn upload(
             s3_bucket,
             item.object_key_name()
         );
-        if s3_client.put_object(s3_bucket, item.object_key_name(), item.file_path()) {
+        if aws_s3
+            .put_object(s3_bucket, item.object_key_name(), item.file_path())
+            .await
+        {
             uploaded.push(item.object_key_name().to_string());
         }
     }
@@ -28,12 +27,13 @@ pub fn upload(
 
 #[cfg(test)]
 mod tests {
+    use async_trait::async_trait;
     use std::collections::HashMap;
 
     use super::*;
 
-    #[test]
-    fn upload_it() {
+    #[tokio::test]
+    async fn upload_it() {
         // Set up
         let mut upload_items: Vec<UploadItem> = vec![];
         let mut map: HashMap<String, bool> = HashMap::new();
@@ -49,10 +49,10 @@ mod tests {
             upload_items.push(UploadItem::new("file_path".into(), n.to_string()));
         }
 
-        let test_s3_client = TestS3Client { map };
+        let test_aws_s3 = TestS3Client { map };
 
         // Action
-        let uploaded = upload(&test_s3_client, &upload_items, "s3_bucket");
+        let uploaded = upload(&test_aws_s3, &upload_items, "s3_bucket").await;
 
         // Test
         assert_eq!(uploaded, expected);
@@ -62,8 +62,9 @@ mod tests {
         map: HashMap<String, bool>,
     }
 
-    impl S3PutObject for TestS3Client {
-        fn put_object(&self, _bucket: &str, key: &str, _file: &str) -> bool {
+    #[async_trait]
+    impl AwsS3 for TestS3Client {
+        async fn put_object(&self, _bucket: &str, key: &str, _file: &str) -> bool {
             if let Some(&b) = self.map.get(key) {
                 return b;
             }

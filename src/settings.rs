@@ -40,7 +40,7 @@ impl Settings {
     }
     /// Returns 'Settings' from `file_name`
     pub fn from(file_name: &str) -> Result<Self, ConfigError> {
-        debug!("Creating new instance of Settings using {}", file_name);
+        debug!("Reading settings from {}", file_name);
         let mut cfg = config::Config::default();
         cfg.merge(File::with_name(&file_name))?;
         cfg.try_into::<Settings>()
