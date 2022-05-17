@@ -1,25 +1,46 @@
-use log::{debug, info, log_enabled, Level};
+use log::{debug, error, info, log_enabled, Level};
 
-use crate::{aws_s3::AwsS3, prepare_upload::UploadItem};
+use crate::{
+    aws_s3::AwsS3,
+    inventory::{self, Append},
+    prepare_upload::UploadItem,
+};
 
-pub async fn upload(aws_s3: &dyn AwsS3, items: &Vec<UploadItem>, s3_bucket: &str) -> Vec<String> {
+pub async fn upload(
+    aws_s3: &dyn AwsS3,
+    uploads: &Vec<UploadItem>,
+    s3_bucket: &str,
+    append_impl: &dyn Append,
+) -> Vec<String> {
     let mut uploaded = vec![];
     if log_enabled!(Level::Info) {
-        info!("Uploading {} objects to {}", items.len(), s3_bucket);
+        info!("Uploading {} objects to {}", uploads.len(), s3_bucket);
     }
 
-    for item in items {
+    for upload in uploads {
         debug!(
             "Uploading file {} to s3 bucket with key {}/{}",
-            item.file_path(),
+            upload.file_path(),
             s3_bucket,
-            item.object_key_name()
+            upload.object_key_name()
         );
         if aws_s3
-            .put_object(s3_bucket, item.object_key_name(), item.file_path())
+            .put_object(s3_bucket, upload.object_key_name(), upload.file_path())
             .await
         {
-            uploaded.push(item.object_key_name().to_string());
+            uploaded.push(upload.object_key_name().to_string());
+
+            match inventory::append_one(append_impl, &upload.file_path()) {
+                Ok(_) => {}
+                Err(e) => {
+                    error!(
+                        "Could not append inventory file {} with {}",
+                        append_impl.get_path(),
+                        &upload.file_path()
+                    );
+                    error!("{}", e);
+                }
+            }
         }
     }
     uploaded
@@ -28,7 +49,9 @@ pub async fn upload(aws_s3: &dyn AwsS3, items: &Vec<UploadItem>, s3_bucket: &str
 #[cfg(test)]
 mod tests {
     use async_trait::async_trait;
-    use std::collections::HashMap;
+    use std::{collections::HashMap, io::Error};
+
+    use crate::inventory::Path;
 
     use super::*;
 
@@ -51,8 +74,10 @@ mod tests {
 
         let test_aws_s3 = TestS3Client { map };
 
+        let test_inventory = TestInventoryPath {};
+
         // Action
-        let uploaded = upload(&test_aws_s3, &upload_items, "s3_bucket").await;
+        let uploaded = upload(&test_aws_s3, &upload_items, "s3_bucket", &test_inventory).await;
 
         // Test
         assert_eq!(uploaded, expected);
@@ -69,6 +94,20 @@ mod tests {
                 return b;
             }
             false
+        }
+    }
+
+    struct TestInventoryPath {}
+
+    impl Path for TestInventoryPath {
+        fn get_path(&self) -> String {
+            todo!()
+        }
+    }
+
+    impl Append for TestInventoryPath {
+        fn append(&self, _new_content: &String) -> Result<(), Error> {
+            Ok(())
         }
     }
 }

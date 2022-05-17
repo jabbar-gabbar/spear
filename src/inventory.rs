@@ -55,8 +55,8 @@ pub trait Append: Path {
 
 impl Append for InventoryPath {
     fn append(&self, new_content: &String) -> Result<(), Error> {
-        if log_enabled!(Level::Info) {
-            info!("Appending inventory {}", &self.path);
+        if log_enabled!(Level::Debug) {
+            debug!("Appending inventory {}", &self.path);
         }
         let mut option = fs::OpenOptions::new();
         let mut file: File = option.create(true).append(true).open(&self.path)?;
@@ -65,23 +65,19 @@ impl Append for InventoryPath {
     }
 }
 
-pub fn append(append_impl: &dyn Append, uploaded: &Vec<String>) -> Result<(), Error> {
+pub fn append_one(append_impl: &dyn Append, uploaded: &str) -> Result<bool, Error> {
     if uploaded.is_empty() {
-        return Ok(());
+        return Ok(false);
     }
-    let mut new_content = uploaded.join("\n");
-    new_content.push_str("\n");
+
+    let new_content = format!("{}\n", uploaded);
     append_impl.append(&new_content)?;
 
-    if log_enabled!(Level::Info) {
-        info!(
-            "Appended inventory file {} with count {}",
-            append_impl.get_path(),
-            uploaded.len()
-        );
+    if log_enabled!(Level::Debug) {
+        debug!("Appended inventory file {}", append_impl.get_path())
     }
 
-    Ok(())
+    Ok(true)
 }
 
 #[cfg(test)]
@@ -123,29 +119,27 @@ mod tests {
     }
 
     #[test]
-    fn append_inserts_new_line() {
-        let new_content = "";
-        let uploaded = vec![new_content.to_string()];
+    fn append_one_inserts_new_line() {
+        let uploaded = "img1";
 
-        let mut expected = uploaded.join("\n");
-        expected.push_str("\n");
+        let expected = format!("{}\n", uploaded);
 
         let test_inventory = TestInventoryPath {
-            new_content: new_content.into(),
+            new_content: uploaded.into(),
             expected_content: expected.into(),
         };
 
-        append(&test_inventory, &uploaded).unwrap();
+        assert_eq!(append_one(&test_inventory, &uploaded).unwrap(), true);
     }
 
     #[test]
-    fn append_skips_when_uploaded_is_empty() {
-        let uploaded = vec![];
+    fn append_one_skips_when_uploaded_is_empty() {
+        let uploaded = "";
         let test_inventory = TestInventoryPath {
             new_content: "".into(),
             expected_content: "".into(),
         };
-        let result = append(&test_inventory, &uploaded).unwrap();
-        assert_eq!(result, ());
+
+        assert_eq!(append_one(&test_inventory, &uploaded).unwrap(), false);
     }
 }
