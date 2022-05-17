@@ -57,12 +57,7 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
 
         let prepared = prepare_upload::prepare(&source, &inventory, backup.source_directory_path());
 
-        let uploaded = uploader::upload(aws_s3, &prepared, backup.s3_bucket()).await;
-
-        match inventory::append(&inv_path, &uploaded) {
-            Ok(_) => {}
-            Err(e) => log_error("Could not append inventory {}", &e.to_string()),
-        }
+        let uploaded = uploader::upload(aws_s3, &prepared, backup.s3_bucket(), &inv_path).await;
 
         if log_enabled!(Level::Info) {
             log_metric(

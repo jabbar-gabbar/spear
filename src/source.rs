@@ -1,4 +1,4 @@
-use log::{debug, info, log_enabled, Level};
+use log::{info, log_enabled, Level};
 use std::{io::Error, path::Path};
 use walkdir::WalkDir;
 
