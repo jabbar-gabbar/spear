@@ -2,6 +2,7 @@ use log::{error, info, log_enabled, Level};
 
 use crate::{
     aws_s3::AwsS3,
+    filter,
     inventory::{self, InventoryPath},
     prepare_upload,
     settings::Settings,
@@ -55,7 +56,10 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
             }
         };
 
-        let prepared = prepare_upload::prepare(&source, &inventory, backup.source_directory_path());
+        let filtered = filter::filter(backup.excluded_extensions(), source);
+
+        let prepared =
+            prepare_upload::prepare(&filtered, &inventory, backup.source_directory_path());
 
         let uploaded = uploader::upload(aws_s3, &prepared, backup.s3_bucket(), &inv_path).await;
 
@@ -63,7 +67,7 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
             log_metric(
                 backup.source_directory_path(),
                 backup.s3_bucket(),
-                source.len(),
+                filtered.len(),
                 inventory.len(),
                 prepared.len(),
                 uploaded.len(),
@@ -91,7 +95,7 @@ fn log_metric(
 ) {
     info!("---- {} --> bucket: {} ----", dir, bucket);
     info!(
-        "---- Metric source: {}, inventory: {}, prepared: {}, uploaded: {} ----",
+        "---- Metric source-filtered: {}, inventory: {}, prepared: {}, uploaded: {} ----",
         source, inv, prepared, uploaded
     );
 }

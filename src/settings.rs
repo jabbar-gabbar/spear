@@ -7,6 +7,7 @@ pub struct Backup {
     source_directory_path: String,
     s3_bucket: String,
     inventory_file_path: String,
+    excluded_extensions: String,
 }
 
 impl Backup {
@@ -26,6 +27,12 @@ impl Backup {
     #[must_use]
     pub fn inventory_file_path(&self) -> &str {
         self.inventory_file_path.as_ref()
+    }
+
+    /// Get a reference to the backup's excluded extension.
+    #[must_use]
+    pub fn excluded_extensions(&self) -> &str {
+        self.excluded_extensions.as_ref()
     }
 }
 #[derive(Debug, Deserialize)]
