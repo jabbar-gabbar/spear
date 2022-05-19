@@ -2,8 +2,10 @@
 source_directory_path  = ""
 s3_bucket = ""
 inventory_file_path = ""
+excluded_extensions = ""
 
 [[backup]]
 source_directory_path  = ""
 s3_bucket = ""
 inventory_file_path = ""
+excluded_extensions = ""
