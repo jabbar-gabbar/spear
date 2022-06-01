@@ -29,7 +29,11 @@ pub fn filter(extension_filter: &str, source: Vec<String>) -> Vec<String> {
 }
 
 fn sanitize(filter: &str) -> String {
-    filter.to_lowercase().replace(".", "").split_whitespace().collect()
+    filter
+        .to_lowercase()
+        .replace(".", "")
+        .split_whitespace()
+        .collect()
 }
 
 #[cfg(test)]
