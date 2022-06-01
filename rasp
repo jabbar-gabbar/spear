@@ -1,0 +1,61 @@
+
+https://linuxize.com/post/how-to-mount-cifs-windows-share-on-linux/
+sudo apt update
+
+sudo apt install cifs-utils
+
+sudo mkdir /mnt/big_dipti
+
+sudo mount -t cifs -o username=tarang //192.168.1.7/dipti /mnt/big_dipti
+
+df -h
+
+/etc/win-credentials
+username=user
+password=password
+domain=domain
+
+
+sudo chown root: /etc/win-credentials
+sudo chmod 600 /etc/win-credentials
+
+sudo mount -t cifs -o credentials=/etc/win-credentials,dir_mode=0755,file_mode=0755 //WIN_SHARE_IP/<share_name> /mnt/win_share
+sudo mount -t cifs -o credentials=/etc/win-credentials,uid=1000,gid=1000,dir_mode=0755,file_mode=0755 //WIN_SHARE_IP/<share_name> /mnt/win_share
+
+
+sudo mkdir /mnt/big_dipti
+sudo mkdir /mnt/big_tarang
+sudo mkdir /mnt/big_ipad
+sudo mkdir /mnt/big_nikon
+
+
+sudo nano /etc/fstab
+
+
+//192.168.1.7/dipti  /mnt/big_dipti  cifs  auto,username=tarang,password=Welcome1,nofail,x-systemd.automount 0       0
+//192.168.1.7/tarang  /mnt/big_tarang  cifs  auto,username=tarang,password=Welcome1,nofail,x-systemd.automount 0       0
+//192.168.1.7/nikon  /mnt/big_nikon  cifs  auto,username=tarang,password=Welcome1,nofail,x-systemd.automount 0       0
+//192.168.1.7/ipad  /mnt/big_ipad  cifs  auto,username=tarang,password=Welcome1,nofail,x-systemd.automount 0       0
+
+*/1 * * * * RUST_LOG=debug /home/pi/spear/./spear
+*/1 * * * * /home/pi/spear/./spear
+
+
+----------working cron below-----------
+run.sh file:
+    #!/bin/bash
+    cd /home/pi/spear
+    RUST_LOG=debug ./spear
+
+crontab -e
+    */30 * * * * /home/pi/spear/run.sh 2>&1 | logger -t spear
+
+grep 'spear' /var/log/syslog
+grep spear /var/log/syslog
+grep CRON /var/log/syslog
+
+/tmp/crontab.4lzm5h/crontab
+
+crontab -e
+grep CRON /var/log/syslog
+https://askubuntu.com/questions/222512/cron-info-no-mta-installed-discarding-output-error-in-the-syslog

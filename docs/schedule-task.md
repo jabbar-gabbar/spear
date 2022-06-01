@@ -20,7 +20,9 @@ This shell script will run when the schedule task runs
 sudo cat >>run.sh <<EOF
 #!/bin/bash
 cd /home/{user name}/spear
-RUST_LOG=spear=info ./spear
+file_name=$(date +'%Y_%m_%d')
+RUST_LOG=spear=info ./spear &>> log/log_$file_name
+find /home/{user name}/spear/log -mindepth 1 -mtime +1 -type f -delete
 EOF
 ```
 
@@ -32,7 +34,7 @@ Cron job runs the above shell script on the schedule
 crontab -e
 # schedule to run every 30 minutes
 # add the line below in the file
-*/30 * * * * /home/{user name}/spear/run.sh 2>&1 | logger -t spear
+*/10 * * * * /home/{user name}/spear/run.sh 2>&1 | logger -t spear
 ```
 
 ## View the logs of new job
