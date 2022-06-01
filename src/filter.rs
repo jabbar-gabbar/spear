@@ -16,8 +16,8 @@ pub fn filter(extension_filter: &str, source: Vec<String>) -> Vec<String> {
     for file_path in source {
         match Path::new(&file_path).extension() {
             Some(ext) => {
-                let file_ext = ext.to_str().unwrap_or("");
-                if !excluded.contains(file_ext) {
+                let file_ext = ext.to_str().unwrap_or("").to_lowercase();
+                if !excluded.contains(file_ext.as_str()) {
                     filtered.push(file_path);
                 }
             }
@@ -29,7 +29,7 @@ pub fn filter(extension_filter: &str, source: Vec<String>) -> Vec<String> {
 }
 
 fn sanitize(filter: &str) -> String {
-    filter.replace(".", "").split_whitespace().collect()
+    filter.to_lowercase().replace(".", "").split_whitespace().collect()
 }
 
 #[cfg(test)]
@@ -82,6 +82,19 @@ mod tests {
             "file.img".to_string(),
             "file.tmp".to_string(),
             "file.txt".to_string(),
+        ];
+        let expected = vec!["file.img".to_string()];
+        let result = filter(extensions, source);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn case_insensitive_extension() {
+        let extensions = "TMP, txt";
+        let source = vec![
+            "file.img".to_string(),
+            "file.tmp".to_string(),
+            "file.TXT".to_string(),
         ];
         let expected = vec!["file.img".to_string()];
         let result = filter(extensions, source);
