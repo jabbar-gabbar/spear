@@ -2,6 +2,8 @@
 
 ## Mount a network attached drive or an external drive
 
+Skip this step if you don't want to connect an external or a network drive.
+
 ```shell
 sudo apt install cifs-utils
 
@@ -14,7 +16,7 @@ sudo nano /etc/fstab
 
 ## Create a shell script
 
-This shell script will run when the schedule task runs
+This shell script will create a new file `run.sh`. When it runs on a schedule, it configures log files output, executes `spear` and clean up old logs files at the end of a run.
 
 ```shell
 sudo cat >>run.sh <<EOF
@@ -28,18 +30,27 @@ EOF
 
 ## Create a cron job
 
-Cron job runs the above shell script on the schedule
+Schedule `run.sh` using cron job
 
 ```shell
 crontab -e
-# schedule to run every 30 minutes
-# add the line below in the file
+```
+
+To run every 10 minutes:
+
+```shell
 */10 * * * * /home/{user name}/spear/run.sh 2>&1 | logger -t spear
 ```
 
-## View the logs of new job
+## View the logs of the job
 
 ```shell
 grep spear /var/log/syslog
 grep CRON /var/log/syslog
+```
+
+or
+
+```shell
+tail /home/spear/log/log_file_name
 ```
