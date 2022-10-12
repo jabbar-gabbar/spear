@@ -2,7 +2,7 @@
 
 Spear can be used to automate the backup of media files to AWS S3. AWS S3 offers cheap storage especially if it is used purely for archival purposes and when you don't need to retrieve the files for day-to-day use.
 
-AWS S3 Glacier cost less than 1 penny per GB per month, so it could cost approximately $10 a month for 1 TB for S3 Glacier Instant Retrieval. S3 Glacier Deep Archive could cost approximately $1 per month for 1 TB of storage.
+AWS S3 Glacier cost less than 1 penny per GB per month, so it could cost approximately $10 a month for 1 TB of S3 Glacier Instant Retrieval. S3 Glacier Deep Archive could cost approximately $1 per month for 1 TB of storage.
 
 The main use case is to automate long term data archival offsite.
 
@@ -16,11 +16,12 @@ You can use a pre-built binary of your choice of your platform from the Releases
 
 ```Shell
 mkdir spear
+cd spear
+mkdir inventory
 
 wget https://github.com/jabbar-gabbar/spear/releases/download/v0.1.0-alpha.2/spear-v0.1.0-alpha.2-armv7-unknown-linux-musleabihf.tar.gz
 
 tar -xf spear-v0.1.0-alpha.2-armv7-unknown-linux-musleabihf.tar.gz
-mkdir inventory
 ```
 
 ### Settings.toml
@@ -28,8 +29,17 @@ mkdir inventory
 Settings.toml files stores configuration for your file source and destination.
 
 ```Shell
-# edit the file using choice of your editor
+# Use editor of your choice , but I use nano.
 nano Settings.toml
+```
+
+You will see an empty backup toml file as below.
+
+```Toml
+[[backup]]
+source_directory_path  = ""
+s3_bucket = ""
+inventory_file_path = ""
 ```
 
 You can specify more than one source and destination in the settings file. The one below performs a backup from `/home/Pictures` directory to `your_aws_s3_bucket_name` S3 bucket and stores uploaded inventory files names in `inventory/pictures_inv` file. You will need to specify appropriate names for inventory files in the settings. Spear will create inventory files if they don't exist the first time.
@@ -53,7 +63,7 @@ inventory_file_path = "inventory/inventory_inv"
 
 In case the configuration gets wiped out for some reason, it is recommended to backup inventory files to S3 as shown in the third backup configuration above.
 
-Spear uses AWS SDK to communicate with S3 bucket. You will need to choose access keys and store them appropriately in your environment, please see AWS documentation for more information [https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html](https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html)
+Spear uses AWS SDK to communicate with S3 bucket. You will need to choose access keys and store them appropriately in your environment. Please see AWS documentation for more information [https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html](https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html)
 
 Spear can run on schedule basis, you can find more information [here.](docs/schedule-task.md)
 
