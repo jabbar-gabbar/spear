@@ -2,7 +2,7 @@
 
 ## Mount a network attached drive or an external drive
 
-Skip this step if you don't want to connect an external or a network drive
+Skip this step if you don't want to connect an external or a network drive.
 
 ```shell
 sudo apt install cifs-utils

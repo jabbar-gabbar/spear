@@ -33,7 +33,7 @@ Settings.toml files stores configuration for your file source and destination.
 nano Settings.toml
 ```
 
-You will see an empty backup toml file as below.
+You will see an empty backup toml file as shown below.
 
 ```Toml
 [[backup]]
@@ -42,7 +42,7 @@ s3_bucket = ""
 inventory_file_path = ""
 ```
 
-You can specify more than one source and destination in the settings file. The one below performs a backup from `/home/Pictures` directory to `your_aws_s3_bucket_name` S3 bucket and stores uploaded inventory files names in `inventory/pictures_inv` file. You will need to specify appropriate names for inventory files in the settings. Spear will create inventory files if they don't exist the first time.
+You can specify more than one source and destination in the settings file. The one shown below performs a backup from `/home/Pictures` directory to `your_aws_s3_bucket_name_goes_here` S3 bucket and stores uploaded inventory files names in `inventory/inventory_file_name` file. You will need to specify appropriate names for inventory files in the settings. Spear will create inventory files if they don't exist the first time.
 
 ```Toml
 [[backup]]
