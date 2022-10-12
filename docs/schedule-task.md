@@ -28,12 +28,15 @@ EOF
 
 ## Create a cron job
 
-Cron job runs the above shell script on the schedule
+Schedule the above script using cron job
 
 ```shell
 crontab -e
-# schedule to run every 30 minutes
-# add the line below in the file
+```
+
+To run every 10 minutes:
+
+```shell
 */10 * * * * /home/{user name}/spear/run.sh 2>&1 | logger -t spear
 ```
 
