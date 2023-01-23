@@ -2,26 +2,25 @@ use log::{error, info, log_enabled, Level};
 
 use crate::{
     aws_s3::AwsS3,
-    filter,
+    file_backup, filter,
     inventory::{self, InventoryPath},
     prepare_upload,
     settings::Settings,
     source::{self, SourceDir},
-    uploader,
 };
 
 pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
-    for backup in settings.backup {
+    for config in settings.backup {
         if log_enabled!(Level::Info) {
             log_backing_up(
-                backup.source_directory_path(),
-                backup.s3_bucket(),
-                backup.inventory_file_path(),
+                config.source_directory_path(),
+                config.s3_bucket(),
+                config.inventory_file_path(),
             );
         }
 
         let inv_path = InventoryPath {
-            path: backup.inventory_file_path().to_string(),
+            path: config.inventory_file_path().to_string(),
         };
 
         let inventory = match inventory::list(&inv_path) {
@@ -30,7 +29,7 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
                 log_error(
                     &format!(
                         "Could not read inventory file at {}",
-                        backup.inventory_file_path()
+                        config.inventory_file_path()
                     ),
                     &e.to_string(),
                 );
@@ -39,7 +38,7 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
         };
 
         let source_dir = SourceDir {
-            dir_path: backup.source_directory_path().to_string(),
+            dir_path: config.source_directory_path().to_string(),
         };
 
         let source = match source::list(&source_dir) {
@@ -48,7 +47,7 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
                 log_error(
                     &format!(
                         "Could not read source dir at {}",
-                        backup.source_directory_path()
+                        config.source_directory_path()
                     ),
                     &e.to_string(),
                 );
@@ -56,21 +55,21 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
             }
         };
 
-        let filtered = filter::filter(backup.excluded_extensions(), source);
+        let filtered = filter::filter(config.excluded_extensions(), source);
 
         let prepared =
-            prepare_upload::prepare(&filtered, &inventory, backup.source_directory_path());
+            prepare_upload::prepare(&filtered, &inventory, config.source_directory_path());
 
-        let uploaded = uploader::upload(aws_s3, &prepared, backup.s3_bucket(), &inv_path).await;
+        let count = file_backup::backup(aws_s3, &prepared, config.s3_bucket(), &inv_path).await;
 
         if log_enabled!(Level::Info) {
             log_metric(
-                backup.source_directory_path(),
-                backup.s3_bucket(),
+                config.source_directory_path(),
+                config.s3_bucket(),
                 filtered.len(),
                 inventory.len(),
                 prepared.len(),
-                uploaded.len(),
+                count,
             )
         }
     }
@@ -81,6 +80,8 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
 }
 
 fn log_backing_up(dir: &str, bucket: &str, inventory: &str) {
+    info!("\n----");
+    info!("\n----");
     info!("---- Backing up dir: {} --> bucket: {} ----", dir, bucket);
     info!("---- Using inventory file : {}", inventory);
 }
@@ -93,9 +94,9 @@ fn log_metric(
     prepared: usize,
     uploaded: usize,
 ) {
-    info!("---- {} --> bucket: {} ----", dir, bucket);
+    info!("---- backed up: {} ==> bucket: {} ----", dir, bucket);
     info!(
-        "---- Metric source-filtered: {}, inventory: {}, prepared: {}, uploaded: {} ----",
+        "---- source: {}, inventory: {}, prepared: {}, uploaded: {} ----",
         source, inv, prepared, uploaded
     );
 }

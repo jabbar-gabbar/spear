@@ -6,3 +6,4 @@ pub mod prepare_upload;
 pub mod settings;
 pub mod source;
 pub mod uploader;
+pub mod file_backup;

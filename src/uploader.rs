@@ -6,6 +6,16 @@ use crate::{
     prepare_upload::UploadItem,
 };
 
+pub async fn upload_one(aws_s3: &dyn AwsS3, upload: &UploadItem, s3_bucket: &str) -> bool {
+    debug!(
+        "Uploading file {} to s3 bucket {} with key {}",
+        upload.file_path(),
+        s3_bucket,
+        upload.object_key_name()
+    );
+    aws_s3.put_object(s3_bucket, upload.object_key_name(), upload.file_path()).await
+}
+
 pub async fn upload(
     aws_s3: &dyn AwsS3,
     uploads: &Vec<UploadItem>,
