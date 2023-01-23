@@ -1,9 +1,6 @@
-use log::{debug};
+use log::debug;
 
-use crate::{
-    aws_s3::AwsS3,
-    prepare_upload::UploadItem,
-};
+use crate::{aws_s3::AwsS3, prepare_upload::UploadItem};
 
 pub async fn upload_one(aws_s3: &dyn AwsS3, upload: &UploadItem, s3_bucket: &str) -> bool {
     debug!(
@@ -22,7 +19,7 @@ mod tests {
     use async_trait::async_trait;
     use std::{collections::HashMap, io::Error};
 
-    use crate::inventory::{Path, Append};
+    use crate::inventory::{Append, Path};
 
     use super::*;
 
