@@ -80,8 +80,8 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
 }
 
 fn log_backing_up(dir: &str, bucket: &str, inventory: &str) {
-    info!("\n----");
-    info!("\n----");
+    info!("----\n");
+    info!("----\n");
     info!("---- Backing up dir: {} --> bucket: {} ----", dir, bucket);
     info!("---- Using inventory file : {}", inventory);
 }
