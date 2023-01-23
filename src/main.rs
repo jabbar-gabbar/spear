@@ -1,6 +1,6 @@
 use aws_sdk_s3::Client;
 use log::error;
-use spear::{aws_s3::S3Client, file_backup, settings::Settings};
+use spear::{aws_s3::S3Client, backup, settings::Settings};
 use std::process;
 
 #[tokio::main]
@@ -16,5 +16,5 @@ async fn main() {
     let client = Client::new(&config);
     let s3_client = S3Client { s3: client };
 
-    file_backup::run(settings, &s3_client).await;
+    backup::run(settings, &s3_client).await;
 }

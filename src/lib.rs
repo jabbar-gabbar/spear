@@ -1,4 +1,5 @@
 pub mod aws_s3;
+pub mod backup;
 pub mod file_backup;
 pub mod filter;
 pub mod inventory;
