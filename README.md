@@ -28,11 +28,6 @@ tar -xf spear-v0.1.0-alpha.2-armv7-unknown-linux-musleabihf.tar.gz
 
 Settings.toml files stores configuration for your file source and destination.
 
-```Shell
-# Use editor of your choice , but I use nano.
-nano Settings.toml
-```
-
 You will see an empty backup toml file as shown below.
 
 ```Toml
@@ -40,30 +35,28 @@ You will see an empty backup toml file as shown below.
 source_directory_path  = ""
 s3_bucket = ""
 inventory_file_path = ""
+excluded_extensions = ""
 ```
 
-You can specify more than one source and destination in the settings file. The one shown below performs a backup from `/home/Pictures` directory to `your_aws_s3_bucket_name_goes_here` S3 bucket and stores uploaded inventory files names in `inventory/inventory_file_name` file. You will need to specify appropriate names for inventory files in the settings. Spear will create inventory files if they don't exist the first time.
+You can specify more than one source and destination in the settings file. The one shown below performs a backup from `/home/Pictures` directory to `your_aws_s3_bucket_name` S3 bucket and stores uploaded inventory files names in `inventory/inventory_file_name` file. You will need to specify appropriate names for inventory files in the settings. Spear will create inventory files if they don't exist the first time.
 
 ```Toml
 [[backup]]
 source_directory_path  = "/home/Pictures"
-s3_bucket = "your_aws_s3_bucket_name_goes_here"
+s3_bucket = "your_aws_s3_bucket_name"
 inventory_file_path = "inventory/inventory_file_name"
+excluded_extensions = "png,pdf,mov"
 
 [[backup]]
-source_directory_path  = "/home/Videos"
+source_directory_path  = "/mnt/my_share/iphone"
 s3_bucket = "s3-bucket-2"
 inventory_file_path = "inventory/videos_inv"
-
-[[backup]]
-source_directory_path  = "inventory"
-s3_bucket = "s3-bucket-3"
-inventory_file_path = "inventory/inventory_inv"
+excluded_extensions = "pdf"
 ```
 
 In case the configuration gets wiped out for some reason, it is recommended to backup inventory files to S3 as shown in the third backup configuration above.
 
-Spear uses AWS SDK to communicate with S3 bucket. You will need to choose access keys and store them appropriately in your environment. Please see AWS documentation for more information [https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html](https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html)
+Spear uses AWS SDK to communicate with S3 bucket. You will need to choose access keys and store them appropriately in your environment. Read AWS documentation for more information [https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html](https://docs.aws.amazon.com/sdk-for-rust/latest/dg/credentials.html)
 
 Spear can run on schedule basis, you can find more information [here.](docs/schedule-task.md)
 

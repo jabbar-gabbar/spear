@@ -14,42 +14,58 @@ sudo nano /etc/fstab
 //192.168.[num].[num]/my_share  /mnt/my_share  cifs  auto,username=\*\*\*,password=\*\*\*",nofail,x-systemd.automount 0       0
 ```
 
-## Create a shell script
+## Configure a schedule job
 
-This shell script will create a new file `run.sh`. When it runs on a schedule, it configures log files output, executes `spear` and clean up old logs files at the end of a run.
+### Create a shell script
+
+Create a new shell script `run.sh` or whatever name you like. When it runs on a schedule, it configures log files output, runs `spear` and clean up old logs files at the end of a run.
 
 ```shell
-sudo cat >>run.sh <<EOF
 #!/bin/bash
 cd /home/{user name}/spear
 file_name=$(date +'%Y_%m_%d')
 RUST_LOG=spear=info ./spear &>> log/log_$file_name
 find /home/{user name}/spear/log -mindepth 1 -mtime +1 -type f -delete
-EOF
 ```
 
-## Create a cron job
+### Create a trigger
 
-Schedule `run.sh` using cron job
+In order to run only one instance of `run.sh` at a time for backup that may run longer than next scheduled run, you can use a trigger script that checks if the previous `run.sh` job is completed. You can find more information about this approach at [SimpleIt.Rocks](https://simpleit.rocks/linux/shell/prevent-running-of-duplicate-cron-jobs/) blog.
+
+`caller.sh`
+
+```shell
+#!/bin/bash
+if pidof -o %PPID -x "run.sh">/dev/null; then
+echo "Process is already running"
+exit 1
+else
+/home/{user}/spear/run.sh
+fi
+```
+
+### Configure a cron job
+
+Schedule using cron job:
 
 ```shell
 crontab -e
 ```
 
-To run every 10 minutes:
+Add the following line to the cron editor to schedule `caller.sh` every 12 hours:
 
 ```shell
-*/10 * * * * /home/{user name}/spear/run.sh 2>&1 | logger -t spear
+0 */12 * * * /home/{user}/spear/caller.sh 2>&1 | logger -t spear
 ```
 
-## View the logs of the job
+View the logs of the job:
 
 ```shell
 grep spear /var/log/syslog
 grep CRON /var/log/syslog
 ```
 
-or
+View spear logs:
 
 ```shell
 tail /home/spear/log/log_file_name
