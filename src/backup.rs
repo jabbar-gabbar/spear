@@ -4,7 +4,7 @@ use crate::{
     aws_s3::AwsS3,
     file_backup, filter,
     inventory::{self, InventoryPath},
-    prepare_upload,
+    prepare_upload::{self, UploadItem},
     settings::Settings,
     source::{self, SourceDir},
 };
@@ -55,9 +55,9 @@ pub async fn run(settings: Settings, aws_s3: &dyn AwsS3) {
             }
         };
 
-        let filtered = filter::filter(config.excluded_extensions(), source);
+        let filtered: Vec<String> = filter::filter(config.excluded_extensions(), source);
 
-        let prepared =
+        let prepared: Vec<UploadItem> =
             prepare_upload::prepare(&filtered, &inventory, config.source_directory_path());
 
         let count = file_backup::backup(aws_s3, &prepared, config.s3_bucket(), &inv_path).await;
