@@ -1,6 +1,6 @@
 # Spear
 
-Spear can automate the backup of media files to AWS S3. The primary use case is to automate long-term data archival offsite in case onsite media files are lost. 
+Spear can automate the backup of media files to AWS S3. The primary use case is to automate long-term data archival offsite in case onsite media files are lost.
 
 AWS S3 offers cheap storage when you don't need to retrieve the files for daily use. For example, S3 Glacier Deep Archive could cost roughly $1 per month for 1 TB of storage.
 
